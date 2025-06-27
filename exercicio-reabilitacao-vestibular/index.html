@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Exercícios para reabilitação vestibular para cientose</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: black;
+    }
+    canvas {
+      display: block;
+    }
+    #controls {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 10;
+      color: white;
+      font-family: sans-serif;
+    }
+    button, label {
+      margin: 5px 5px 5px 0;
+      font-size: 14px;
+    }
+    input[type="range"] {
+      width: 100px;
+    }
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <div>
+      <button onclick="setAnimation('random')">Aleatório</button>
+      <button onclick="setAnimation('linear')">Movimento linear</button>
+      <button onclick="setAnimation('eight')">Movimento em 8</button>
+      <button onclick="togglePause()" id="pauseBtn">Pausa</button>
+    </div>
+    <div>
+      <label>Tamanho da bolinha:
+        <input type="range" min="5" max="100" value="20" id="sizeSlider" oninput="updateBallSize(this.value)">
+      </label>
+      <label>Velocidade da bolinha:
+        <input type="range" min="1" max="20" value="5" id="speedSlider" oninput="updateBallSpeed(this.value)">
+      </label>
+    </div>
+  </div>
+
+  <canvas id="canvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const pauseBtn = document.getElementById('pauseBtn');
+
+    let width, height;
+    function resize() {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width;
+      canvas.height = height;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    const ball = {
+      x: width / 2,
+      y: height / 2,
+      radius: 20,
+      color: 'yellow',
+      vx: 3,
+      vy: 2,
+      speed: 5,
+      t: 0
+    };
+
+    let currentAnimation = 'random';
+    let animationId;
+    let isPaused = false;
+
+    function drawBall(x, y) {
+      ctx.beginPath();
+      ctx.arc(x, y, ball.radius, 0, Math.PI * 2);
+      ctx.fillStyle = ball.color;
+      ctx.fill();
+    }
+
+    function animateRandom() {
+      if (isPaused) return;
+      ctx.clearRect(0, 0, width, height);
+      ball.x = Math.random() * (width - 2 * ball.radius) + ball.radius;
+      ball.y = Math.random() * (height - 2 * ball.radius) + ball.radius;
+      drawBall(ball.x, ball.y);
+
+      const delay = 1000 / ball.speed; // speed controls flick rate
+      animationId = setTimeout(() => requestAnimationFrame(animateRandom), delay);
+    }
+
+    function animateLinear() {
+      if (isPaused) return;
+      ctx.clearRect(0, 0, width, height);
+      ball.x += ball.vx * (ball.speed / 5);
+      ball.y += ball.vy * (ball.speed / 5);
+
+      if (ball.x < ball.radius || ball.x > width - ball.radius) ball.vx *= -1;
+      if (ball.y < ball.radius || ball.y > height - ball.radius) ball.vy *= -1;
+
+      drawBall(ball.x, ball.y);
+      animationId = requestAnimationFrame(animateLinear);
+    }
+
+    function animateEight() {
+      if (isPaused) return;
+      ctx.clearRect(0, 0, width, height);
+
+      ball.t += 0.03 * (ball.speed / 5);
+      const a = width / 4;
+      const b = height / 4;
+      ball.x = width / 2 + a * Math.sin(ball.t);
+      ball.y = height / 2 + b * Math.sin(ball.t) * Math.cos(ball.t);
+
+      drawBall(ball.x, ball.y);
+      animationId = requestAnimationFrame(animateEight);
+    }
+
+    function setAnimation(type) {
+      cancelAnimationFrame(animationId);
+      clearTimeout(animationId);
+      currentAnimation = type;
+      isPaused = false;
+      pauseBtn.textContent = "Pause";
+
+      ball.x = width / 2;
+      ball.y = height / 2;
+      ball.t = 0;
+
+      if (type === 'random') {
+        animateRandom();
+      } else if (type === 'linear') {
+        animateLinear();
+      } else if (type === 'eight') {
+        animateEight();
+      }
+    }
+
+    function updateBallSize(value) {
+      ball.radius = parseInt(value);
+    }
+
+    function updateBallSpeed(value) {
+      ball.speed = parseInt(value);
+    }
+
+    function togglePause() {
+      isPaused = !isPaused;
+      pauseBtn.textContent = isPaused ? "Resume" : "Pause";
+
+      if (!isPaused) {
+        if (currentAnimation === 'random') animateRandom();
+        else if (currentAnimation === 'linear') animateLinear();
+        else if (currentAnimation === 'eight') animateEight();
+      }
+    }
+
+    // Initialize
+    updateBallSize(document.getElementById('sizeSlider').value);
+    updateBallSpeed(document.getElementById('speedSlider').value);
+    setAnimation('random');
+  </script>
+</body>
+</html>
