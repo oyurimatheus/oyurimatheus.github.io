@@ -14,12 +14,14 @@
       display: block;
     }
     #controls {
-      position: absolute;
+      background-color: #FAFAFA;
+      display: flex;
+      padding: 1rem;
       top: 10px;
       left: 10px;
       z-index: 10;
-      color: white;
-      font-family: sans-serif;
+      color: #000;
+      font-family: 'Helvetica', sans-serif;
     }
     button, label {
       margin: 5px 5px 5px 0;
@@ -80,6 +82,12 @@
     let animationId;
     let isPaused = false;
 
+    const animations = {
+        random: animateRandom,
+        linear: animateLinear,
+        eight: animateEight
+    }
+
     function drawBall(x, y) {
       ctx.beginPath();
       ctx.arc(x, y, ball.radius, 0, Math.PI * 2);
@@ -130,19 +138,13 @@
       clearTimeout(animationId);
       currentAnimation = type;
       isPaused = false;
-      pauseBtn.textContent = "Pause";
+      pauseBtn.textContent = "Pausa";
 
       ball.x = width / 2;
       ball.y = height / 2;
       ball.t = 0;
 
-      if (type === 'random') {
-        animateRandom();
-      } else if (type === 'linear') {
-        animateLinear();
-      } else if (type === 'eight') {
-        animateEight();
-      }
+     animations[currentAnimation]()
     }
 
     function updateBallSize(value) {
@@ -155,12 +157,10 @@
 
     function togglePause() {
       isPaused = !isPaused;
-      pauseBtn.textContent = isPaused ? "Resume" : "Pause";
+      pauseBtn.textContent = isPaused ? "Continuar" : "Pausar";
 
       if (!isPaused) {
-        if (currentAnimation === 'random') animateRandom();
-        else if (currentAnimation === 'linear') animateLinear();
-        else if (currentAnimation === 'eight') animateEight();
+        animations[currentAnimation]()
       }
     }
 
